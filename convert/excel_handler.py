@@ -58,7 +58,7 @@ def get_row_generator(sheet, start_idx):
 
 def get_col_generator(sheet, start_idx):
     """
-    获取行的生成器，用于遍历sheet
+    获取列的生成器，用于遍历sheet
     Args:
         sheet: openpyxl.worksheet.worksheet.Worksheet
         start_idx: [int]起始索引值，索引值从0开始

@@ -282,7 +282,7 @@ class MockStdOut(object):
         """
         return object.__getattribute__(self.origin, attr_name)
 
-    def write(self, text, is_show_output=True):
+    def write(self, text):
         """
         输出回调
         Args:
@@ -297,7 +297,7 @@ class MockStdOut(object):
         if self._buffer.endswith('\n'):
             self._buffer = self._buffer.rstrip('\n')
             import gui.main_window
-            if gui.main_window.main_window and is_show_output:
+            if gui.main_window.main_window:
                 if self.channel == 'stdout':
                     gui.main_window.main_window.output_window.show_normal_message(self._buffer)
                 else:
