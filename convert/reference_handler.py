@@ -21,6 +21,7 @@ def _gen_index_dict(referred_file_list):
         None
     """
     global INDEX_DICT
+    INDEX_DICT.clear()
     for filename in referred_file_list:
         workbook = convert.excel_handler.get_workbook(filename)
         for sheet in convert.excel_handler.get_sheets(workbook):
