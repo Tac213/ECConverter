@@ -18,7 +18,7 @@ def format_data(data, indent_count=0):
     output = []
     if isinstance(data, dict):
         output.append('{')
-        keys = list(data.keys())
+        keys = sorted(data.keys())
         if settings.ID_COLUMN_NAME in keys:
             # 把id排在第一位
             keys.remove(settings.ID_COLUMN_NAME)
