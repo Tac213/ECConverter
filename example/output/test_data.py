@@ -8,6 +8,16 @@
 data = {
     3: {
         'id': 3,
+        'damage': (
+            {
+                'base': 5.0,
+                'crit': True,
+            },
+        ),
+        'hero_id': 1001,
+        'hero_list': (
+            1002,
+        ),
         'name': 'a_name',
         'repeated': (
             2.3,
@@ -16,35 +26,13 @@ data = {
             0.0,
             0.2,
         ),
-        'hero_id': 1001,
-        'hero_list': (
-            1002,
-        ),
         'test': {
             1: 2,
             3: 4,
         },
-        'damage': (
-            {
-                'base': 5.0,
-                'crit': True,
-            },
-        ),
     },
     4: {
         'id': 4,
-        'name': 'b_name',
-        'repeated': (
-            3.14,
-        ),
-        'hero_list': (
-            1000,
-            1002,
-        ),
-        'test': {
-            'a': 4,
-            'b': 4.444,
-        },
         'damage': (
             {
                 'base': 3.0,
@@ -55,5 +43,17 @@ data = {
                 'crit': True,
             },
         ),
+        'hero_list': (
+            1000,
+            1002,
+        ),
+        'name': 'b_name',
+        'repeated': (
+            3.14,
+        ),
+        'test': {
+            'a': 4,
+            'b': 4.444,
+        },
     },
 }

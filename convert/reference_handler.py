@@ -33,15 +33,23 @@ def _gen_index_dict(referred_file_list):
                 data_name = data_name.split(settings.DATA_NAME_SPLITTER)[0]
             id_name = convert.excel_handler.get_cell_value_str(sheet, settings.FIELD_NAME_INDEX, settings.COLUMN_OFFSET)
             id_type = convert.excel_handler.get_cell_value_str(sheet, settings.FIELD_TYPE_INDEX, settings.COLUMN_OFFSET)
-            name_name = convert.excel_handler.get_cell_value_str(sheet,
-                                                                 settings.FIELD_NAME_INDEX, settings.COLUMN_OFFSET + 1)
+            for col_idx, col_values in enumerate(convert.excel_handler.get_col_generator(sheet, settings.COLUMN_OFFSET),
+                                                 settings.COLUMN_OFFSET):
+                cell_value_str = convert.excel_handler.get_cell_value_str_with_tuple(col_values,
+                                                                                     settings.FIELD_NAME_INDEX)
+                if cell_value_str == settings.CH_NAME_COLUMN_NAME:
+                    name_name = cell_value_str
+                    name_idx = col_idx
+                    break
+            else:
+                raise KeyError('\'%s\'的\'%s\'缺少字段: \'%s\'' % (filename, data_name, settings.CH_NAME_COLUMN_NAME))
             if id_name != settings.ID_COLUMN_NAME:
                 continue
             if name_name != settings.CH_NAME_COLUMN_NAME:
                 continue
             for row_values in convert.excel_handler.get_row_generator(sheet, settings.ROW_OFFSET):
                 id_value = row_values[settings.COLUMN_OFFSET]
-                name_value = row_values[settings.COLUMN_OFFSET + 1]
+                name_value = row_values[name_idx]
                 if not id_value or not name_value:
                     continue
                 if id_type == 'int':
