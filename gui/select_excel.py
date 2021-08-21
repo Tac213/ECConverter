@@ -124,8 +124,8 @@ class SelectExcel(QFrame):
             None
         """
         import convert
-        success = convert.generate_excel_info()
         try:
+            success = convert.generate_excel_info()
             if success:
                 QMessageBox.information(self, self.tr('提示'), self.tr('生成成功'),
                                         QMessageBox.StandardButton.Ok, QMessageBox.StandardButton.Ok)

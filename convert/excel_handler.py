@@ -39,7 +39,10 @@ def get_data_name(sheet):
         str
     """
     data_name = get_cell_value_str(sheet, *settings.DATA_NAME_COORDINATE)
-    if not data_name.endswith(settings.DATA_NAME_SUFFIX):
+    if settings.DATA_NAME_SPLITTER in data_name:
+        if not data_name.split(settings.DATA_NAME_SPLITTER)[0].endswith(settings.DATA_NAME_SUFFIX):
+            return None
+    elif not data_name.endswith(settings.DATA_NAME_SUFFIX):
         return None
     return data_name
 
