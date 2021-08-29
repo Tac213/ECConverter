@@ -13,6 +13,12 @@ _DEPENDENCY = [
 
 
 def check_dependency():
+    """
+    检查第三方依赖库
+    为用户安装第三方依赖库
+    Returns:
+        None
+    """
     for lib_name in _DEPENDENCY:
         try:
             __import__(lib_name)
