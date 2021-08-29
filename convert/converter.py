@@ -357,7 +357,7 @@ def _fill_data_value(data, col_schema, value_str):
     field_name = col_schema.name
     sub_field_name = field_name
 
-    if settings.FIELD_NAME_SPLITTER in field_name and not is_empty:
+    if settings.FIELD_NAME_SPLITTER in field_name and (not is_empty or col_schema.default != ''):
         field_name, sub_field_name = field_name.split(settings.FIELD_NAME_SPLITTER)
         data = data.setdefault(field_name, {})
 
