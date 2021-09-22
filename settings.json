@@ -1,7 +1,7 @@
 {
   "excel_dir": "example/data",
   "output_dir": "example/output",
-  "ref_file": "example/data/proto_ref_relation_info.txt",
+  "ref_file": "example/data/reference_info.txt",
   "excel_info_file": "example/data/all_excel_data.txt",
   "data_list_name": "data_list",
   "dump_file_ext_name": "py",
