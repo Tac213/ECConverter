@@ -14,6 +14,46 @@ import convert.formatter
 jinja_env = None  # type: jinja2.Environment
 
 
+def render_enum_class(**render_kwargs):
+    """
+    render生成enum的类代码
+    Args:
+        render_kwargs: [dict]render代码时的kwargs
+    Returns:
+        str
+    """
+    _init_jinja_env()
+    template = jinja_env.get_template(const.TemplateName.ENUM_CLASS)
+    return template.render(**render_kwargs)
+
+
+def dump_enum_module(enum_name, class_code_list):
+    """
+    dump一个enum文件
+    Args:
+        enum_name: [str]导出的enum的模块名
+        class_code_list: [list]类代码列表
+    Returns:
+        None
+    """
+    if enum_name not in settings.ENUM_INFO:
+        ec_converter.logger.error('enum名字\'%s\'错误，dump失败', enum_name)
+        return
+    if const.ENUM_OUTPUT_DIR_KEY not in settings.ENUM_INFO[enum_name]:
+        ec_converter.logger.error('\'%s\'的%s未配置，dump失败', enum_name, const.ENUM_OUTPUT_DIR_KEY)
+        return
+    output_dir = os.path.abspath(settings.ENUM_INFO[enum_name][const.ENUM_OUTPUT_DIR_KEY])
+    _init_jinja_env()
+    template = jinja_env.get_template(const.TemplateName.ENUM_MODULE)
+    content = template.render(
+        module_name=enum_name,
+        class_code_list=class_code_list,
+    )
+    dump_file_basename = '%s.%s' % (enum_name, settings.DUMP_FILE_EXT_NAME)
+    dump_file_path = os.path.join(output_dir, dump_file_basename)
+    _dump_file(dump_file_path, content)
+
+
 def dump_data_module(excel_file_path, data_name, sheet_result):
     """
     dump一个data文件
@@ -37,6 +77,7 @@ def dump_data_module(excel_file_path, data_name, sheet_result):
 
     import convert.converter
     translate_meta_info = convert.converter.get_translate_meta_info(sheet_result)
+    addtional_import_info = convert.converter.get_addtional_import_info(sheet_result)
 
     _init_jinja_env()
     template = jinja_env.get_template(const.TemplateName.DATA_MODULE)
@@ -44,6 +85,7 @@ def dump_data_module(excel_file_path, data_name, sheet_result):
         excel_file_name=excel_file_name,
         data=data,
         translate_meta_info=translate_meta_info,
+        addtional_import_info=addtional_import_info,
     )
 
     dump_file_basename = '%s.%s' % (data_name, settings.DUMP_FILE_EXT_NAME)
@@ -92,6 +134,17 @@ def dump_ref_file(content):
     _dump_file(settings.REF_FILENAME, content)
 
 
+def dump_enum_ref_file(content):
+    """
+    dump enum引用信息文件
+    Args:
+        content: [str]文件内容
+    Returns:
+        None
+    """
+    _dump_file(settings.ENUM_REF_FILENAME, content)
+
+
 def dump_excel_info_file(content):
     """
     dump所有Excel信息的文件
@@ -101,6 +154,17 @@ def dump_excel_info_file(content):
         None
     """
     _dump_file(settings.EXCEL_INFO_FILENAME, content)
+
+
+def dump_enum_info_file(content):
+    """
+    dump所有enum信息的文件
+    Args:
+        content: [str]文件内容
+    Returns:
+        None
+    """
+    _dump_file(settings.ENUM_INFO_FILENAME, content)
 
 
 def _init_jinja_env():

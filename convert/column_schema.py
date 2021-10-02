@@ -26,3 +26,4 @@ class ColumnSchema(object):
         self.default = default
         self.translate_meta = translate_meta
         self.ref = ref
+        self.additional_import = None  # 字段需要额外导入的模块名，是个str

@@ -2,6 +2,7 @@
 # author: Tac
 # contact: gzzhanghuaxiong@corp.netease.com
 
+import os
 import time
 import datetime
 
@@ -14,22 +15,27 @@ import convert.dump_handler
 import convert.sheet_result
 import convert.column_schema
 import convert.reference_handler
+import convert.validation_handler
 import convert.hooks
 
 unique_id_check_dict = {}  # 检查id是否重复的字典, key为data_name，value为对应的id的集合
 
 
 @convert.common_helper.time_it
-def convert_sheet(sheet, result_dict):
+def convert_sheet(sheet, result_dict, is_enum_mode=False):
     """
     转换单个sheet的数据
     Args:
         sheet: openpyxl.worksheet.worksheet.Worksheet
         result_dict: [dict]结果都存在这里, key为data_name，value为sheet_result
+        is_enum_mode: [bool]是否为enum导表模式
     Returns:
         bool, 是否成功
     """
-    data_name = convert.excel_handler.get_data_name(sheet)
+    if is_enum_mode:
+        data_name = convert.excel_handler.get_enum_class_name(sheet)
+    else:
+        data_name = convert.excel_handler.get_data_name(sheet)
     sheet_name = convert.excel_handler.get_sheet_name(sheet)
     if not data_name:
         ec_converter.logger.info('sheet \'%s\' 的data名字为空或不符合命名规则，不导表', sheet_name)
@@ -96,6 +102,83 @@ def convert_excel_file(excel_file_path):
     return True
 
 
+@convert.common_helper.time_it
+def convert_enum_excel_file(excel_file_path, is_set_data_validation):
+    """
+    转换enum的excel数据为enum类代码
+    Args:
+        excel_file_path: [str]excel完整路径
+        is_set_data_validation: [bool]是否为引用excel设置数据验证
+    Returns:
+        str, 类代码，如果失败则返回None
+    """
+    ec_converter.logger.info('开始导表: \'%s\'' % excel_file_path)
+
+    global unique_id_check_dict
+    unique_id_check_dict.clear()
+
+    enum_name = os.path.basename(os.path.dirname(excel_file_path))
+    workbook = convert.excel_handler.get_workbook(excel_file_path)
+    sheets = convert.excel_handler.get_sheets(workbook)
+
+    result_dict = {}
+    enum_class_name_to_sheet_name = {}
+    for sheet in sheets:
+        enum_class_name = convert.excel_handler.get_enum_class_name(sheet)
+        sheet_name = convert.excel_handler.get_sheet_name(sheet)
+        enum_class_name_to_sheet_name[enum_class_name] = sheet_name
+        if not convert_sheet(sheet, result_dict, True):
+            ec_converter.logger.error('导表失败，sheet name = \'%s\'', convert.excel_handler.get_sheet_name(sheet))
+            workbook.close()
+            del workbook
+            return None
+
+    # excel用完了就关掉
+    workbook.close()
+    del workbook
+
+    class_code_list = []
+    for enum_class_name, sheet_result in result_dict.items():
+        if not sheet_result.data_list:
+            continue
+        class_code = convert.dump_handler.render_enum_class(
+            class_name=enum_class_name,
+            class_comment=enum_class_name_to_sheet_name[enum_class_name],
+            members=sheet_result.data_list,
+        )
+        class_code_list.append(class_code)
+        if is_set_data_validation:
+            convert.validation_handler.handle_validation(enum_name, enum_class_name, sheet_result.data_list)
+
+    return '\n'.join(class_code_list)
+
+
+@convert.common_helper.time_it
+def convert_enum_dir(enum_dir_path, is_set_data_validation):
+    """
+    转换单个enum目录的数据
+    Args:
+        enum_dir_path: [str]enum目录的完整路径
+        is_set_data_validation: [bool]是否为引用excel设置数据验证
+    Returns:
+        bool, 是否成功
+    """
+    enum_name = os.path.basename(enum_dir_path)
+    ec_converter.logger.info('开始导出enum: \'%s\'' % enum_name)
+    enum_file_list = os.listdir(enum_dir_path)
+    class_code_list = []
+    for enum_excel in enum_file_list:
+        excel_full_path = os.path.join(enum_dir_path, enum_excel)
+        classes_code = convert_enum_excel_file(excel_full_path, is_set_data_validation)
+        if classes_code is None:
+            return False
+        if classes_code:
+            # 可能是空字符串导致多一个空行
+            class_code_list.append(classes_code)
+    convert.dump_handler.dump_enum_module(enum_name, class_code_list)
+    return True
+
+
 def _convert_row(row_data, sheet_name, sheet_result):
     """
     转换sheet某一行的数据，结果存在sheet_result里
@@ -122,7 +205,7 @@ def _convert_row(row_data, sheet_name, sheet_result):
             continue
         col_schema = sheet_result.col_schema_dict.get(idx)
         if not col_schema:
-            return False
+            continue
         value_str = convert.excel_handler.get_value_str(value)
         try:
             _fill_data_value(data, col_schema, value_str)
@@ -152,6 +235,24 @@ def get_translate_meta_info(sheet_result):
     return translate_meta_info
 
 
+def get_addtional_import_info(sheet_result):
+    """
+    获取额外导入信息
+    Args:
+        sheet_result: SheetResult实例
+    Returns:
+        list，每一项是导入的模块名
+    """
+    import_info = []
+    for col_schema in sheet_result.name_schema_dict.values():
+        if not col_schema.additional_import:
+            continue
+        if col_schema.additional_import in import_info:
+            continue
+        import_info.append(col_schema.additional_import)
+    return import_info
+
+
 def _post_process_data(data, sheet_result):
     """
     对导出的字典进行后处理
@@ -169,7 +270,7 @@ def _post_process_data(data, sheet_result):
     global unique_id_check_dict
     id_value = data[settings.ID_COLUMN_NAME]
     if id_value in unique_id_check_dict.get(sheet_result.data_name, {}):
-        raise RuntimeError('%s重复: %s' % settings.ID_COLUMN_NAME, id_value)
+        raise RuntimeError('%s重复: %s' % (settings.ID_COLUMN_NAME, id_value))
     unique_id_check_dict.setdefault(sheet_result.data_name, set()).add(id_value)
 
     # 检查id完成后保存该行结果
@@ -334,6 +435,8 @@ def _get_sheet_schema_meta_info(sheet, name_schema_dict, col_schema_dict):
         # 获取导表后的默认值
         field_default = _get_field_value(col_schema, field_default, True)
         col_schema.default = field_default
+        if field_type in const.ADDITIONAL_IMPORT_FIELD_TYPES:
+            col_schema.additional_import = const.ADDITIONAL_IMPORT_FIELD_TYPES[field_type]
 
         name_schema_dict[field_name] = col_schema
         col_schema_dict[idx] = col_schema
@@ -403,10 +506,7 @@ def _get_field_value(col_schema, value_str, is_default_value=False):
 
     if col_schema.ref is not None:
         # 替换引用的值
-        new_type, value = convert.reference_handler.replace_reference(col_schema, value)
-        if not is_default_value:
-            # 读取默认值的时候不要重新设置schema的类型，否则后续读表的时候会拿到错误的类型
-            col_schema.type = new_type
+        value = convert.reference_handler.replace_reference(col_schema, value)
 
     return value
 

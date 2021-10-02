@@ -3,9 +3,9 @@
 # contact: gzzhanghuaxiong@corp.netease.com
 
 """
-读取config.json
+读取settings.json
 获取导表的相关配置
-未来可能可以通过gui的形式来改config
+未来可能可以通过gui的形式来改settings
 """
 
 import os
@@ -19,8 +19,12 @@ EXCEL_DIR = ''
 OUTPUT_DIR = ''
 # 引用信息文件，是个绝对路径，json里填相对路径
 REF_FILENAME = ''
+# enum引用信息文件，是个绝对路径，json里填相对路径
+ENUM_REF_FILENAME = ''
 # 所有Excel信息的文件，是个绝对路径，json里填相对路径
 EXCEL_INFO_FILENAME = ''
+# 所有enum信息的文件，是个绝对路径，json里填相对路径
+ENUM_INFO_FILENAME = ''
 # data list的模块名
 DATA_LIST_NAME = ''
 # dump文件的拓展名
@@ -43,6 +47,10 @@ FIELD_NAME_SPLITTER = ''
 REPEATED_VALUE_SPLITTER = ''
 # data名的分隔符
 DATA_NAME_SPLITTER = ''
+# enum key的分隔符, 比如uconst.ClassName, 分隔符就是'.'
+ENUM_KEY_SPLITTER = ''
+# enum路径的分隔符，比如uconst/00-测试.xlsx, 分隔符就是'/'
+ENUM_PATH_SPLITTER = ''
 # 字段文本所在的行的索引值
 FIELD_TEXT_INDEX = 0
 # 字段名所在的行的索引值
@@ -57,6 +65,8 @@ FIELD_DEFAULT_INDEX = 0
 ROW_OFFSET = 0
 # 数据开始列索引值
 COLUMN_OFFSET = 0
+# enum的value字段列索引值
+ENUM_VALUE_COLUMN_INDEX = 0
 # data名字的坐标
 DATA_NAME_COORDINATE = [0, 0]
 # data名字的后缀
@@ -65,20 +75,28 @@ DATA_NAME_SUFFIX = ''
 ID_COLUMN_NAME = ''
 # ch_name的字段名
 CH_NAME_COLUMN_NAME = ''
+# enum的value的字段名
+ENUM_VALUE_COLUMN_NAME = ''
+# enum注释的字段名
+ENUM_COMMENT_COLUMN_NAME = ''
 # 在拆分工作表时允许重复的字段名
 REPEATABLE_FIELD_NAME_IN_SPLITTED_SHEETS = []
+# enum的相关信息，key为enum的名字，value为字典
+ENUM_INFO = {}
 
 
 def read_config():
     """
-    读取config.json，更新全局变量
+    读取settings.json，更新全局变量
     Returns:
         None
     """
     global EXCEL_DIR
     global OUTPUT_DIR
     global REF_FILENAME
+    global ENUM_REF_FILENAME
     global EXCEL_INFO_FILENAME
+    global ENUM_INFO_FILENAME
     global DATA_LIST_NAME
     global DUMP_FILE_EXT_NAME
     global INDENT_CHAR
@@ -90,6 +108,8 @@ def read_config():
     global FIELD_NAME_SPLITTER
     global REPEATED_VALUE_SPLITTER
     global DATA_NAME_SPLITTER
+    global ENUM_KEY_SPLITTER
+    global ENUM_PATH_SPLITTER
     global FIELD_TEXT_INDEX
     global FIELD_NAME_INDEX
     global FIELD_TYPE_INDEX
@@ -97,11 +117,15 @@ def read_config():
     global FIELD_DEFAULT_INDEX
     global ROW_OFFSET
     global COLUMN_OFFSET
+    global ENUM_VALUE_COLUMN_INDEX
     global DATA_NAME_COORDINATE
     global DATA_NAME_SUFFIX
     global ID_COLUMN_NAME
     global CH_NAME_COLUMN_NAME
+    global ENUM_VALUE_COLUMN_NAME
+    global ENUM_COMMENT_COLUMN_NAME
     global REPEATABLE_FIELD_NAME_IN_SPLITTED_SHEETS
+    global ENUM_INFO
 
     config_json_path = os.path.abspath('settings.json')
     with open(config_json_path, 'r') as f:
@@ -119,10 +143,18 @@ def read_config():
     if key not in data:
         ec_converter.logger.error('\'settings.json\'中的\'%s\'未配置！！请检查！！', key)
     REF_FILENAME = os.path.abspath(data[key])
+    key = 'enum_ref_file'
+    if key not in data:
+        ec_converter.logger.error('\'settings.json\'中的\'%s\'未配置！！请检查！！', key)
+    ENUM_REF_FILENAME = os.path.abspath(data[key])
     key = 'excel_info_file'
     if key not in data:
         ec_converter.logger.error('\'settings.json\'中的\'%s\'未配置！！请检查！！', key)
     EXCEL_INFO_FILENAME = os.path.abspath(data[key])
+    key = 'enum_info_file'
+    if key not in data:
+        ec_converter.logger.error('\'settings.json\'中的\'%s\'未配置！！请检查！！', key)
+    ENUM_INFO_FILENAME = os.path.abspath(data[key])
     key = 'data_list_name'
     if key not in data:
         ec_converter.logger.error('\'settings.json\'中的\'%s\'未配置！！请检查！！', key)
@@ -167,6 +199,14 @@ def read_config():
     if key not in data:
         ec_converter.logger.error('\'settings.json\'中的\'%s\'未配置！！请检查！！', key)
     DATA_NAME_SPLITTER = data[key]
+    key = 'enum_key_splitter'
+    if key not in data:
+        ec_converter.logger.error('\'settings.json\'中的\'%s\'未配置！！请检查！！', key)
+    ENUM_KEY_SPLITTER = data[key]
+    key = 'enum_path_splitter'
+    if key not in data:
+        ec_converter.logger.error('\'settings.json\'中的\'%s\'未配置！！请检查！！', key)
+    ENUM_PATH_SPLITTER = data[key]
     key = 'field_text_index'
     if key not in data:
         ec_converter.logger.error('\'settings.json\'中的\'%s\'未配置！！请检查！！', key)
@@ -195,6 +235,10 @@ def read_config():
     if key not in data:
         ec_converter.logger.error('\'settings.json\'中的\'%s\'未配置！！请检查！！', key)
     COLUMN_OFFSET = data[key]
+    key = 'enum_value_column_index'
+    if key not in data:
+        ec_converter.logger.error('\'settings.json\'中的\'%s\'未配置！！请检查！！', key)
+    ENUM_VALUE_COLUMN_INDEX = data[key]
     key = 'data_name_coordinate'
     if key not in data:
         ec_converter.logger.error('\'settings.json\'中的\'%s\'未配置！！请检查！！', key)
@@ -211,7 +255,19 @@ def read_config():
     if key not in data:
         ec_converter.logger.error('\'settings.json\'中的\'%s\'未配置！！请检查！！', key)
     CH_NAME_COLUMN_NAME = data[key]
+    key = 'enum_value_column_name'
+    if key not in data:
+        ec_converter.logger.error('\'settings.json\'中的\'%s\'未配置！！请检查！！', key)
+    ENUM_VALUE_COLUMN_NAME = data[key]
+    key = 'enum_comment_column_name'
+    if key not in data:
+        ec_converter.logger.error('\'settings.json\'中的\'%s\'未配置！！请检查！！', key)
+    ENUM_COMMENT_COLUMN_NAME = data[key]
     key = 'repeatable_field_name_in_splitted_sheets'
     if key not in data:
         ec_converter.logger.error('\'settings.json\'中的\'%s\'未配置！！请检查！！', key)
     REPEATABLE_FIELD_NAME_IN_SPLITTED_SHEETS = data[key]
+    key = 'enum_info'
+    if key not in data:
+        ec_converter.logger.error('\'settings.json\'中的\'%s\'未配置！！请检查！！', key)
+    ENUM_INFO = data[key]

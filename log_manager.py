@@ -287,7 +287,6 @@ class MockStdOut(object):
         输出回调
         Args:
             text: [str]输出内容
-            is_show_output: [bool]是否显示到输出窗口
         Returns:
             None
         """

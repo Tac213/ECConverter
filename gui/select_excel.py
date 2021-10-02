@@ -89,6 +89,9 @@ class SelectExcel(QFrame):
             if file_path.startswith('..'):
                 ec_converter.logger.warning(self.tr('所选Excel文件必须要在\'%s\'目录内'), self._excel_dir.path())
                 continue
+            if '/' in file_path:
+                ec_converter.logger.warning(self.tr('所选Excel文件不能在\'%s\'目录的子目录内'), self._excel_dir.path())
+                continue
             self.excel_list_view.model().add_node(QModelIndex(), file_path)
 
     def _on_convert(self):

@@ -14,6 +14,7 @@ data = {
                 'crit': True,
             },
         ),
+        'event': 1,
         'hero_id': 1001,
         'hero_list': (
             1002,
@@ -43,6 +44,7 @@ data = {
                 'crit': True,
             },
         ),
+        'event': 2,
         'hero_list': (
             1000,
             1002,

@@ -3,6 +3,7 @@
 # contact: gzzhanghuaxiong@corp.netease.com
 
 import settings
+import const
 
 
 def format_data(data, indent_count=0):
@@ -45,7 +46,12 @@ def format_data(data, indent_count=0):
         else:
             output.append(indent_count * settings.INDENT_CHAR + ']')
     elif isinstance(data, str):
-        output.append('%s%s%s' % (settings.QUOTATION_MARKS, data, settings.QUOTATION_MARKS))
+        for prefix in const.SPECIAL_STR_PREFIX:
+            if data.startswith(prefix):
+                output.append(data)
+                break
+        else:
+            output.append('%s%s%s' % (settings.QUOTATION_MARKS, data, settings.QUOTATION_MARKS))
     elif isinstance(data, (bool, int, float)):
         output.append(str(data))
     else:
