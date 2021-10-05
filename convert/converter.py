@@ -168,6 +168,8 @@ def convert_enum_dir(enum_dir_path, is_set_data_validation):
     enum_file_list = os.listdir(enum_dir_path)
     class_code_list = []
     for enum_excel in enum_file_list:
+        if not enum_excel.endswith('.xlsx') or enum_excel.startswith('~'):
+            continue
         excel_full_path = os.path.join(enum_dir_path, enum_excel)
         classes_code = convert_enum_excel_file(excel_full_path, is_set_data_validation)
         if classes_code is None:
