@@ -371,10 +371,11 @@ def _merge_splitted_sheets(merge_dict, data_list):
                 if field_name not in settings.REPEATABLE_FIELD_NAME_IN_SPLITTED_SHEETS \
                         and field_name in merge_dict[id_value]:
                     raise ValueError('拆分sheet时，字段名重复。id: \'%s\', 字段名: \'%s\'' % (id_value, field_name))
-                elif field_name in merge_dict[id_value] and merge_dict[id_value] != field_value:
+                elif field_name in merge_dict[id_value] and merge_dict[id_value][field_name] != field_value:
                     # settings.REPEATABLE_FIELD_NAME_IN_SPLITTED_SHEETS字段的值在拆分表里必须相同
                     raise ValueError('拆分sheet时，%s字段的%s相同，但值不同: [%s vs %s]' %
-                                     (field_name, settings.ID_COLUMN_NAME, merge_dict[id_value], field_value))
+                                     (field_name, settings.ID_COLUMN_NAME, merge_dict[id_value][field_name],
+                                      field_value))
 
             merge_dict[id_value].update(data)
         else:
