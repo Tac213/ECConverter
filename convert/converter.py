@@ -150,7 +150,7 @@ def convert_enum_excel_file(excel_file_path, is_set_data_validation):
         if is_set_data_validation:
             convert.validation_handler.handle_validation(enum_name, enum_class_name, sheet_result.data_list)
 
-    return '\n'.join(class_code_list)
+    return '\n\n'.join(class_code_list)
 
 
 @convert.common_helper.time_it
