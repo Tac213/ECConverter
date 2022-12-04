@@ -1,0 +1,1 @@
+const localStorageFileName = '.eccpreference';
