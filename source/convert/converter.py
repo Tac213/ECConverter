@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # author: Tac
-# contact: gzzhanghuaxiong@corp.netease.com
+# contact: cookiezhx@163.com
 
 import typing
 import os

@@ -2,6 +2,7 @@
 # author: Tac
 # contact: cookiezhx@163.com
 
+import sys
 import os
 from urllib import parse
 from PySide6 import QtCore, QtQml
@@ -34,4 +35,5 @@ class FileIOHelper(QtCore.QObject):
     @classmethod
     def get_file_path_from_url(cls, file_url: str) -> str:
         parse_result = parse.urlparse(file_url)
-        return parse_result.path[1:] if parse_result.path.startswith('/') else parse_result.path
+        maybe_path = parse.unquote_plus(parse_result.path)
+        return maybe_path[1:] if sys.platform == 'win32' else maybe_path
